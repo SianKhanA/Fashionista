@@ -8,7 +8,8 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern src --ignore-pattern practice --ignore-pattern my_code --ignore-pattern 'Turjo bhaia' --ignore-pattern 'Eshop Free'",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint app components lib db vite.config.ts next.config.ts drizzle.config.ts",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
