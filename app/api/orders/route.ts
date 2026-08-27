@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { database, ensureDatabase } from "@/db/runtime";
 import { calculateShipping, products } from "@/lib/catalog";
 import { initiatePayment } from "@/lib/payments";
+import { proxyToSites, usesVercelBridge } from "@/lib/sites-backend";
 
 type Input = { customer?:Record<string,unknown>; paymentMethod?:string; idempotencyKey?:string; items?:Array<{productId?:string;size?:string;quantity?:number}> };
 const clean=(value:unknown,max=200)=>typeof value==="string"?value.trim().slice(0,max):"";
@@ -9,6 +10,7 @@ const phonePattern=/^(?:\+?88)?01[3-9]\d{8}$/;
 function orderCode(){ const bytes=crypto.getRandomValues(new Uint8Array(5)); return `FAS-${Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("").toUpperCase()}`; }
 
 export async function POST(request:Request){
+  if (usesVercelBridge()) return proxyToSites(request, "/api/orders");
   try { await ensureDatabase(); const input=await request.json() as Input; const customer=input.customer??{}; const name=clean(customer.name,80), phone=clean(customer.phone,20).replace(/[\s-]/g,""), email=clean(customer.email,120), address=clean(customer.address,300), division=clean(customer.division,30), district=clean(customer.district,60), postcode=clean(customer.postcode,12), notes=clean(customer.notes,300); const method=clean(input.paymentMethod,12); const key=clean(input.idempotencyKey,80);
     if(!name||!phonePattern.test(phone)||address.length<8||!division||!district) return NextResponse.json({error:"Please provide complete and valid delivery details."},{status:400});
     if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({error:"Please enter a valid email address."},{status:400});
