@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+:root { --ink:#2b1a20; --wine:#722f45; --rose:#c47b8e; --cream:#fffaf4; --sand:#eadcc9; --gold:#b48a52; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin:0; background:var(--cream); color:var(--ink); font-family:Arial,Helvetica,sans-serif; }
+a { color:inherit; text-decoration:none; }
+.serif { font-family:Georgia,"Times New Roman",serif; }
+.container { width:min(1180px,calc(100% - 32px)); margin-inline:auto; }
+.eyebrow { letter-spacing:.18em; text-transform:uppercase; font-size:.74rem; font-weight:700; color:var(--wine); }
+.button { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 24px; border-radius:999px; font-weight:700; transition:.2s ease; }
+.button-primary { background:var(--wine); color:white; box-shadow:0 10px 28px #722f4528; }
+.button-primary:hover { background:#5e2639; transform:translateY(-1px); }
+.button-light { background:white; border:1px solid #e4d8ca; }
+.hero { min-height:680px; display:grid; align-items:center; background:linear-gradient(90deg,#fffaf4 0%,#fffaf4de 36%,#fffaf426 62%),url('/images/hero-jamdani.png') center/cover no-repeat; }
+.hero-copy { width:min(650px,92%); padding:96px 0; }
+.hero h1 { margin:14px 0 20px; font-size:clamp(3rem,6vw,5.7rem); line-height:.96; letter-spacing:-.045em; font-weight:500; }
+.hero p { max-width:560px; font-size:1.08rem; line-height:1.75; color:#5e4e53; }
+.hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:30px; }
+.trust { background:#2b1a20; color:white; }
+.trust-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; }
+.trust-item { padding:23px 18px; text-align:center; border-right:1px solid #ffffff1f; }
+.trust-item small { display:block; color:#e7d8dd; margin-top:4px; }
+.section { padding:80px 0; }
+.section-head { display:flex; justify-content:space-between; align-items:end; gap:24px; margin-bottom:30px; }
+.section h2 { margin:8px 0 0; font-size:clamp(2.2rem,4vw,3.5rem); font-weight:500; }
+.cards { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+.product { background:white; border:1px solid #ebdfd2; border-radius:22px; padding:12px; }
+.product-art { aspect-ratio:3/4; border-radius:15px; display:grid; place-items:center; overflow:hidden; position:relative; }
+.product-art::after { content:""; position:absolute; inset:12%; border:1px solid #ffffff85; border-radius:50% 50% 44% 44%; }
+.product h3 { margin:16px 4px 5px; font-family:Georgia,serif; font-size:1.08rem; }
+.product p { margin:0 4px 8px; color:var(--wine); font-weight:700; }
+@media (max-width:800px){.hero{min-height:720px;background:linear-gradient(0deg,#fffaf4 4%,#fffaf4bc 60%,#fffaf414),url('/images/hero-jamdani.png') 68% center/cover no-repeat;align-items:end}.hero-copy{padding:250px 0 58px}.trust-grid{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.cards{gap:10px}.product{padding:8px}.hero h1{font-size:3.25rem}.trust-item{font-size:.84rem}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
