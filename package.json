@@ -5,9 +5,11 @@
   "type": "module",
   "engines": { "node": ">=22.13.0" },
   "scripts": {
-    "dev": "vinext dev",
-    "build": "vinext build",
-    "start": "vinext start",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "dev:sites": "vinext dev",
+    "build:sites": "vinext build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint app components lib db vite.config.ts next.config.ts drizzle.config.ts",
     "db:generate": "drizzle-kit generate"

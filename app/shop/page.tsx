@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
@@ -8,7 +8,7 @@ import { categories, materials, occasions, products } from "@/lib/catalog";
 
 const PAGE_SIZE = 16;
 
-export default function ShopPage() {
+function ShopContent() {
   const params = useSearchParams();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState(params.get("category") ?? "All");
@@ -35,5 +35,7 @@ export default function ShopPage() {
     </aside><section className="shop-results" aria-live="polite"><div className="shop-toolbar"><p><strong>{filtered.length}</strong> styles</p><label>Sort <select value={sort} onChange={(e) => setSort(e.target.value)}><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="rating">Top rated</option></select></label></div>
       {visible.length ? <div className="product-grid shop-grid">{visible.map((product) => <ProductCard product={product} key={product.id}/>)}</div> : <div className="empty-state"><h2 className="serif">No pieces found</h2><p>Try removing a filter or searching another term.</p></div>}
       {pageCount > 1 && <nav className="pagination" aria-label="Product pages"><button disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</button><span>Page {page} of {pageCount}</span><button disabled={page === pageCount} onClick={() => setPage(page + 1)}>Next</button></nav>}
-    </section></div></main>;
+  </section></div></main>;
 }
+
+export default function ShopPage() { return <Suspense fallback={<main className="container loading-state">Loading the collection…</main>}><ShopContent/></Suspense>; }

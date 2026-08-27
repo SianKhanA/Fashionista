@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, CreditCard, RefreshCw, ShieldCheck, Truck } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { featuredProducts } from "@/lib/catalog";
+import { siteUrl } from "@/lib/site-url";
 
 const categoryTiles = [
   { name: "Sarees", href: "/shop?category=Saree", image: "/products/saree-4.jpg", note: "Jamdani · Katan · Muslin" },
@@ -10,7 +11,7 @@ const categoryTiles = [
 ] as const;
 
 export default function Home() {
-  const organization = { "@context": "https://schema.org", "@type": "Organization", name: "FashionistA", url: process.env.PUBLIC_SITE_URL ?? "https://fashionista.openai.site", sameAs: ["https://www.facebook.com/fashionista.K"], address: { "@type": "PostalAddress", addressCountry: "BD" } };
+  const organization = { "@context": "https://schema.org", "@type": "Organization", name: "FashionistA", url: siteUrl(), sameAs: ["https://www.facebook.com/fashionista.K"], address: { "@type": "PostalAddress", addressCountry: "BD" } };
   return <main>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }} />
     <section className="hero"><div className="container"><div className="hero-copy">
