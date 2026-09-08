@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Heart, Menu, Search, ShoppingBag, X } from "lucide-react";
+import { catalogIsSample } from "@/lib/catalog";
 import { useStore } from "./store-provider";
 
 const links = [
-  ["New In","/shop?sort=newest"],["Sarees","/shop?category=Saree"],["Kameez","/shop?category=Kameez"],
+  ["Featured","/shop?sort=featured"],["Sarees","/shop?category=Saree"],["Kameez","/shop?category=Kameez"],
   ["Three Piece","/shop?category=Three+Piece"],["Kurtis","/shop?category=Kurti"],["Accessories","/shop?category=Accessories"],
 ] as const;
 
@@ -14,10 +15,10 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { cartCount, wishlist, hydrated } = useStore();
   return <>
-    <div className="announcement">Free delivery on orders over ৳5,000 <span>•</span> Easy 7-day exchange</div>
+    <div className="announcement">{catalogIsSample ? "Preview collection · Sample products and photography" : "Free delivery from ৳5,000 · Easy 7-day exchange"}</div>
     <header className="site-header">
       <div className="container header-row">
-        <button className="icon-button mobile-only" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}>{open ? <X/> : <Menu/>}</button>
+        <button className="icon-button mobile-only" aria-expanded={open} aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}>{open ? <X/> : <Menu/>}</button>
         <Link className="brand serif" href="/">Fashionist<span>A</span></Link>
         <nav className="desktop-nav" aria-label="Main navigation">{links.map(([label,href]) => <Link href={href} key={label}>{label}</Link>)}</nav>
         <div className="header-actions">

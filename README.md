@@ -1,52 +1,46 @@
 # FashionistA Bangladesh
 
-Production-oriented boutique commerce site for sarees, kameez, three-piece sets, kurtis and accessories. It is built with React 19, TypeScript, Vinext and Cloudflare D1, with no Convex or OAuth dependency.
+Bangladesh boutique storefront built with React 19, TypeScript, Next.js 16 and Tailwind. The Sites target uses Vinext and Cloudflare D1. Vercel serves the storefront and forwards all commerce API requests, including payment callbacks, to the separately deployed Worker.
 
-## Included
+The checked-in catalog is **sample content**. The storefront displays a preview notice and does not accept orders by default. Sandbox orders are explicitly marked as test orders. Real ordering cannot be enabled until the catalog is replaced and inventory is configured.
 
-- Responsive storefront with 96 sample catalog variants, category/material/occasion filters, search, sorting and pagination
-- Product galleries, sizing, reviews, wishlist and persistent device cart
-- Bangladesh delivery pricing and a guest checkout that revalidates every product and total on the server
-- Cash on delivery plus SSLCOMMERZ-hosted bKash and card flows
-- Durable D1 orders, idempotent order creation, guest order tracking and newsletter storage
-- Product/organization structured data, social metadata, security headers and immutable asset caching
+## Development
 
-## Local development
-
-Requirements: Node.js 22.13+ and pnpm.
+Use Node.js 24+ and pnpm 11.19.0. Copy `.env.example` to `.env.local` and set the customer-facing origin.
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-The local Sites runtime supplies the `DB` D1 binding and creates the required tables on first use. Open `http://127.0.0.1:3000`.
+`pnpm dev` runs Next.js. For API work, set `STORE_RUNTIME=proxy` and `SITES_BACKEND_URL` to a separately deployed test backend. Never point development at a live order database.
 
-## Configuration
+`pnpm dev:sites` runs the Worker-compatible target with local D1. Apply the SQL files in `drizzle/` in order to that local DB before testing. There is no runtime schema creation. Production migrations are shipped by the Sites build.
 
-Copy `.env.example` to `.env.local` for local gateway testing. Configure these as encrypted server-side environment values in production:
+## Behavior
 
-- `PUBLIC_SITE_URL` — exact HTTPS origin without a trailing slash
-- `SSLCOMMERZ_STORE_ID` — merchant store ID
-- `SSLCOMMERZ_STORE_PASSWORD` — merchant store password
-- `SSLCOMMERZ_SANDBOX` — `true` for sandbox and `false` for live payments
+- Product filtering, search, sorting, pagination, galleries, sizing and device-local cart/wishlist
+- Guest checkout with validated delivery details and server-calculated BDT totals
+- Persistent checkout keys, atomic order/item writes and stock reservation for live orders
+- COD and SSLCOMMERZ-hosted bKash/cards; no payment details stored in the app
+- Exact server-side payment verification, separate IPN acknowledgment and replay-safe updates
+- Guest order tracking with normalized Bangladesh phone numbers
+- Newsletter storage, metadata and security headers
 
-Cash on delivery works without gateway credentials. If SSLCOMMERZ credentials are absent, bKash/card requests fail safely and ask the customer to choose cash on delivery. Never commit live credentials.
-
-## Catalog management
-
-The launch catalog is defined in `lib/catalog.ts`; images live in `public/products`. The base-product/colour model expands a concise merchandising list into efficient variants. Replace the sample product names, prices, descriptions, availability and photography with owner-approved inventory before accepting paid orders.
-
-## Database
-
-The D1 binding name is `DB` in `.openai/hosting.json`. The tracked migration is `drizzle/0000_launch_orders.sql`. Runtime initialization is idempotent, making clean preview deployments usable immediately.
+Cart contents are removed only after the server confirms a matching order. Failed/cancelled payments retain the bag. Retries reuse the saved order and gateway URL. An ambiguous gateway timeout requires reconciliation rather than creating another potentially chargeable session.
 
 ## Verification
 
 ```bash
 pnpm lint
-.\node_modules\.bin\tsc.cmd --noEmit  # Windows
+pnpm typecheck
+pnpm test
+pnpm check:deployment
 pnpm build
+pnpm build:sites
+pnpm check:worker
 ```
 
-Before public launch, add live SSLCOMMERZ credentials, set the canonical site URL, run a real low-value bKash/card payment, confirm callback/IPN processing, and replace all sample catalog content with the store's final inventory. Review the exchange/privacy copy with the owner or local counsel.
+`check:worker` starts an ephemeral local Cloudflare runtime and applies the actual migrations to D1. It checks order creation, retries, tracking, and home-page rendering. It performs no real payments. The regular regression suite uses real SQLite transactions and mocked gateway responses. The standalone typecheck checks application source; each production build validates its own generated route types, avoiding collisions between Next.js and Vinext output.
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for environment configuration, migration order, stock loading and payment validation. The old prototypes under `legacy-react/`, `practice/`, `my_code/`, `Turjo bhaia/` and `Eshop Free/` are not part of the current build.

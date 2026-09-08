@@ -35,10 +35,5 @@ export default function Home() {
       <div className="product-grid">{featuredProducts.map((product, index) => <ProductCard product={product} priority={index < 4} key={product.id}/>)}</div>
     </div></section>
     <section className="story-section"><div className="container story-grid"><div className="story-photo"><img src="/images/hero-jamdani.webp" alt="A contemporary Jamdani saree"/></div><div className="story-copy"><span className="eyebrow">Rooted here</span><h2 className="serif">Clothing that feels like home</h2><p>FashionistA brings together familiar craft, expressive colour and modern ease. Every collection is selected for real celebrations, real weather and real wardrobes in Bangladesh.</p><Link className="button button-light" href="/about">Our story <ArrowRight/></Link></div></div></section>
-    <section className="section reviews"><div className="container"><div className="center-head"><span className="eyebrow">Loved across Bangladesh</span><h2 className="serif">What customers are saying</h2></div><div className="review-grid">
-      <blockquote><div>★★★★★</div><p>“The fabric was exactly as shown and the fitting help on Messenger was wonderful.”</p><cite>— Nusrat, Dhaka</cite></blockquote>
-      <blockquote><div>★★★★★</div><p>“My saree arrived beautifully packed. The colour and weaving are even prettier in person.”</p><cite>— Farzana, Chattogram</cite></blockquote>
-      <blockquote><div>★★★★★</div><p>“Fast delivery outside Dhaka and the exchange process was very easy.”</p><cite>— Tanjina, Rajshahi</cite></blockquote>
-    </div></div></section>
   </main>;
 }
