@@ -18,7 +18,8 @@ const runtime = new Miniflare({
 try {
   const db = await runtime.getD1Database('DB');
   for (const file of readdirSync('drizzle').filter((name) => name.endsWith('.sql')).sort()) {
-    for (const sql of readFileSync(`drizzle/${file}`, 'utf8').split('--> statement-breakpoint').filter((sql) => sql.trim())) await db.prepare(sql).run();
+    // Exercise D1's line-oriented migration execution, including complete triggers.
+    await db.exec(readFileSync(`drizzle/${file}`, 'utf8'));
   }
   const options = await runtime.dispatchFetch('https://store.example/api/checkout');
   assert.equal(options.status, 200);
