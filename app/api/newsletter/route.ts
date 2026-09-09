@@ -1,5 +1,12 @@
-import { NextResponse } from "next/server";
-import { database, ensureDatabase } from "@/db/runtime";
+import { database } from "@/db/runtime";
+import { clean, errorResponse, json, readJson, RequestError } from "@/lib/http";
 import { proxyToSites, usesVercelBridge } from "@/lib/sites-backend";
-
-export async function POST(request:Request){ if(usesVercelBridge()) return proxyToSites(request,"/api/newsletter"); try{ await ensureDatabase(); const body=await request.json() as {email?:string}; const email=(body.email||"").trim().toLowerCase().slice(0,120); if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({error:"Enter a valid email address."},{status:400}); await database().prepare("INSERT OR IGNORE INTO newsletter (email,created_at) VALUES (?,?)").bind(email,new Date().toISOString()).run(); return NextResponse.json({message:"Welcome to the FashionistA list."}); }catch{return NextResponse.json({error:"Please try again shortly."},{status:500});} }
+export async function POST(request: Request) {
+  if (usesVercelBridge()) return proxyToSites(request, "/api/newsletter");
+  try {
+    const body = await readJson(request), email = clean(body.email, 120).toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new RequestError("Enter a valid email address.");
+    await database().prepare("INSERT OR IGNORE INTO newsletter (email,created_at) VALUES (?,?)").bind(email,new Date().toISOString()).run();
+    return json({ message: "Welcome to the FashionistA list." });
+  } catch (error) { return errorResponse(error); }
+}

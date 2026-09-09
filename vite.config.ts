@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { sites } from "@openai/sites-vite-plugin";
 import tailwindcss from "@tailwindcss/postcss";
 import vinext from "vinext";
@@ -13,6 +14,7 @@ export default defineConfig(async () => {
   process.env.MINIFLARE_REGISTRY_PATH ??= ".wrangler/registry";
   const { cloudflare } = await import("@cloudflare/vite-plugin");
   return {
+    resolve: { alias: { "./binding": fileURLToPath(new URL("./db/binding.cloudflare.ts", import.meta.url)) } },
     css: { postcss: { plugins: [tailwindcss()] } },
     server: { host: "0.0.0.0" },
     plugins: [

@@ -3,16 +3,21 @@
   "version": "2.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.13.0" },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "dev:sites": "vinext dev",
     "build:sites": "vinext build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --project tsconfig.check.json",
     "lint": "eslint app components lib db vite.config.ts next.config.ts drizzle.config.ts",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "test": "node --import ./tests/register.mjs --test tests/*.test.ts",
+    "check:worker": "node scripts/check-worker.mjs",
+    "check:deployment": "node --import ./tests/register.mjs scripts/check-deployment.ts"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

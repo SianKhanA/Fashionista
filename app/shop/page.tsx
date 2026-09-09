@@ -8,18 +8,17 @@ import { categories, materials, occasions, products } from "@/lib/catalog";
 
 const PAGE_SIZE = 16;
 
-function ShopContent() {
-  const params = useSearchParams();
+function ShopContent({ initialCategory, initialSort }: { initialCategory: string; initialSort: string }) {
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState(params.get("category") ?? "All");
+  const [category, setCategory] = useState(initialCategory);
   const [material, setMaterial] = useState("All");
   const [occasion, setOccasion] = useState("All");
-  const [sort, setSort] = useState(params.get("sort") ?? "featured");
+  const [sort, setSort] = useState(initialSort);
   const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    return products.filter((p) => (!term || `${p.name} ${p.colour} ${p.material}`.toLowerCase().includes(term)) && (category === "All" || p.category === category) && (material === "All" || p.material === material) && (occasion === "All" || p.occasion === occasion)).sort((a, b) => sort === "price-low" ? a.price - b.price : sort === "price-high" ? b.price - a.price : sort === "rating" ? b.rating - a.rating : a.badge ? -1 : b.badge ? 1 : 0);
+    return products.filter((p) => (!term || `${p.name} ${p.colour} ${p.material}`.toLowerCase().includes(term)) && (category === "All" || p.category === category) && (material === "All" || p.material === material) && (occasion === "All" || p.occasion === occasion)).sort((a, b) => sort === "price-low" ? a.price - b.price : sort === "price-high" ? b.price - a.price : Number(Boolean(b.badge)) - Number(Boolean(a.badge)));
   }, [query, category, material, occasion, sort]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -32,10 +31,16 @@ function ShopContent() {
       <label>Material<select value={material} onChange={(e) => update(setMaterial, e.target.value)}><option>All</option>{materials.map((x) => <option key={x}>{x}</option>)}</select></label>
       <label>Occasion<select value={occasion} onChange={(e) => update(setOccasion, e.target.value)}><option>All</option>{occasions.map((x) => <option key={x}>{x}</option>)}</select></label>
       <button className="text-button" onClick={() => { setQuery(""); setCategory("All"); setMaterial("All"); setOccasion("All"); setPage(1); }}>Clear filters</button>
-    </aside><section className="shop-results" aria-live="polite"><div className="shop-toolbar"><p><strong>{filtered.length}</strong> styles</p><label>Sort <select value={sort} onChange={(e) => setSort(e.target.value)}><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="rating">Top rated</option></select></label></div>
+    </aside><section className="shop-results" aria-live="polite"><div className="shop-toolbar"><p><strong>{filtered.length}</strong> styles</p><label>Sort <select value={sort} onChange={(e) => setSort(e.target.value)}><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select></label></div>
       {visible.length ? <div className="product-grid shop-grid">{visible.map((product) => <ProductCard product={product} key={product.id}/>)}</div> : <div className="empty-state"><h2 className="serif">No pieces found</h2><p>Try removing a filter or searching another term.</p></div>}
       {pageCount > 1 && <nav className="pagination" aria-label="Product pages"><button disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</button><span>Page {page} of {pageCount}</span><button disabled={page === pageCount} onClick={() => setPage(page + 1)}>Next</button></nav>}
   </section></div></main>;
 }
 
-export default function ShopPage() { return <Suspense fallback={<main className="container loading-state">Loading the collection…</main>}><ShopContent/></Suspense>; }
+function ShopRoute() {
+  const params = useSearchParams();
+  const category = params.get("category") || "All";
+  const sort = params.get("sort") || "featured";
+  return <ShopContent key={`${category}:${sort}`} initialCategory={category} initialSort={sort}/>;
+}
+export default function ShopPage() { return <Suspense fallback={<main className="container loading-state">Loading the collection…</main>}><ShopRoute/></Suspense>; }
