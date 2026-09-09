@@ -4,9 +4,13 @@ import assert from 'node:assert/strict';
 const require = createRequire(import.meta.url);
 const wranglerRequire = createRequire(require.resolve('wrangler/package.json'));
 const { Miniflare } = wranglerRequire('miniflare');
+// Vinext uses dynamic imports; enumerate emitted modules rather than asking
+// Miniflare's static dependency scanner to infer every specifier.
+const moduleFiles = readdirSync('dist/server', { recursive: true })
+  .filter((file) => file.endsWith('.js') && file !== 'index.js');
 const runtime = new Miniflare({
-  modules: true, scriptPath: 'dist/server/index.js',
-  modulesRules: [{ type: 'ESModule', include: ['**/*.js'], fallthrough: true }],
+  modulesRoot: 'dist/server',
+  modules: ['index.js', ...moduleFiles].map((file) => ({ type: 'ESModule', path: `dist/server/${file}` })),
   compatibilityDate: '2026-05-15', compatibilityFlags: ['nodejs_compat'],
   d1Databases: ['DB'],
   bindings: { PUBLIC_SITE_URL: 'https://store.example', CHECKOUT_MODE: 'sandbox', SSLCOMMERZ_SANDBOX: 'true' },
