@@ -14,10 +14,10 @@ A single Sites deployment is also supported: use its customer-facing URL as `PUB
 ## Database migration
 
 - Preserve `drizzle/0000_launch_orders.sql`; it may already be applied.
-- Apply `0001_checkout_safety.sql` after the baseline. This adds nullable request hashes/payment URLs, constant-default gateway/demo columns, inventory and stock triggers. Existing order records are preserved.
+- Apply `0001_checkout_safety.sql` after the baseline. This adds nullable request hashes/payment URLs, constant-default gateway/demo columns, inventory constraints. Existing order records are preserved.
 - Runtime handlers no longer create tables. On a fresh environment, both migrations must run before accepting requests.
 - If an older deployment created tables at runtime without recording the baseline migration, inspect its schema and migration history first. Reconcile the baseline through the deployment tooling before applying new migrations. Do not rerun CREATE TABLE blindly or drop existing tables.
-- The baseline Drizzle snapshot has been reconstructed to match the existing SQL, including indexes and foreign keys. Future schema changes use `pnpm db:generate`; append migrations rather than rewriting applied files. The stock triggers are custom SQL and must be preserved separately from Drizzle snapshots.
+- The baseline Drizzle snapshot has been reconstructed to match the existing SQL, including indexes and foreign keys. Future schema changes use `pnpm db:generate`; append migrations rather than rewriting applied files. Stock reservation and cancellation use atomic D1 batches in `lib/inventory.ts`; keep them transactional.
 - Take a database backup before the upgrade. Keep checkout disabled during migration and deployment. An old Worker expecting runtime schema creation must not be used as the schema rollback strategy.
 
 ## Checkout modes
@@ -43,7 +43,7 @@ ON CONFLICT(product_id, size) DO UPDATE SET quantity=excluded.quantity;
 
 Load absolute counts only while checkout is disabled; overwriting counts during sales can undo reservations. For restocking an existing row during operation, add the received quantity instead of replacing the available count. Do not invent stock numbers. Missing inventory rows and insufficient quantities reject the entire order transaction.
 
-Only then set `INVENTORY_READY=true` and enable live checkout. Inventory is reserved when the order is created, including unpaid online orders. Pending/ambiguous payments deliberately do not expire automatically. Operators must reconcile these against SSLCOMMERZ before cancelling an order. Changing status to `cancelled` releases reserved stock once; never reopen that order, delete it, or edit its item rows. A paid cancellation must follow the merchant's refund process first. Legacy orders without request hashes do not release stock they never reserved.
+Only then set `INVENTORY_READY=true` and enable live checkout. Inventory is reserved when the order is created, including unpaid online orders. Pending/ambiguous payments deliberately do not expire automatically. Operators must reconcile these against SSLCOMMERZ before cancelling an order. Use the operator-only `cancelReconciledOrder` helper in `lib/inventory.ts` to cancel and release stock exactly once. Direct status edits do not release stock; never reopen that order, delete it, or edit its item rows. A paid cancellation must follow the merchant's refund process first. Legacy orders without request hashes do not release stock they never reserved.
 
 There is no administrative dashboard or automatic shipping integration in this app. Fulfillment remains an operator workflow in the database: dispatch only live COD orders or verified, paid live orders. Never dispatch demo, pending, review, cancelled or refunded orders.
 

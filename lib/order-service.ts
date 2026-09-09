@@ -1,3 +1,4 @@
+import { reserveStock } from "./inventory";
 import { requireCheckout } from "./checkout-mode";
 import { RequestError } from "./http";
 import { hashRequest, parseOrder, priceOrder } from "./order-input";
@@ -28,6 +29,7 @@ export async function createOrder(db: D1Database, raw: unknown) {
           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
           .bind(code,input.key,hash,c.name,c.phone,c.email||null,c.address,c.division,c.district,c.postcode||null,c.notes||null,
             subtotal,shipping,total,input.method,input.method === "cod" ? "cash_due" : "pending",mode === "sandbox" ? "demo" : "placed",mode === "sandbox" ? 1 : 0,now,now),
+        ...(mode === "live" ? lines.map((line) => reserveStock(db,line.product.id,line.size,line.quantity)) : []),
         ...lines.map((line) => db.prepare(`INSERT INTO order_items (order_id,product_id,name,size,quantity,unit_price)
           VALUES ((SELECT id FROM orders WHERE order_code=?),?,?,?,?,?)`)
           .bind(code,line.product.id,line.product.name,line.size,line.quantity,line.product.price)),

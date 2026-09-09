@@ -1,3 +1,4 @@
+import { reserveStock, cancelReconciledOrder } from "../lib/inventory";
 import test, { beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { TestDatabase } from './database';
@@ -154,8 +155,21 @@ test('live stock cannot go negative and item failures roll back all reservations
   db.sqlite.prepare('UPDATE orders SET is_demo=0 WHERE id=?').run(id);
   db.sqlite.prepare('INSERT INTO inventory(product_id,size,quantity) VALUES (?,?,?)').run(item.productId,item.size,1);
   const insert = () => db.prepare('INSERT INTO order_items(order_id,product_id,name,size,quantity,unit_price) VALUES (?,?,?,?,?,?)').bind(id,item.productId,'Test',item.size,1,100);
-  await assert.rejects(db.batch([insert(),insert()]));
+  const reserve = () => reserveStock(db,item.productId,item.size,1);
+  await assert.rejects(db.batch([reserve(),insert(),reserve(),insert()]));
   assert.equal(db.sqlite.prepare('SELECT quantity FROM inventory').get().quantity, 1);
-  await db.batch([insert()]); assert.equal(db.sqlite.prepare('SELECT quantity FROM inventory').get().quantity, 0);
-  await assert.rejects(db.batch([insert()]));
+  await db.batch([reserve(),insert()]); assert.equal(db.sqlite.prepare('SELECT quantity FROM inventory').get().quantity, 0);
+  await assert.rejects(db.batch([reserve(),insert()]));
+});
+
+test('missing inventory aborts reservation and cancellation releases stock only once', async () => {
+  await assert.rejects(db.batch([reserveStock(db,item.productId,item.size,1)]));
+  assert.equal(db.sqlite.prepare('SELECT count(*) n FROM inventory').get().n, 0);
+  const order = await createOrder(db,input());
+  db.sqlite.prepare('UPDATE orders SET is_demo=0 WHERE order_code=?').run(order.orderCode);
+  db.sqlite.prepare('INSERT INTO inventory(product_id,size,quantity) VALUES (?,?,?)').run(item.productId,item.size,2);
+  await db.batch([reserveStock(db,item.productId,item.size,1)]);
+  await cancelReconciledOrder(db,order.orderCode);
+  await cancelReconciledOrder(db,order.orderCode);
+  assert.equal(db.sqlite.prepare('SELECT quantity FROM inventory').get().quantity,2);
 });
